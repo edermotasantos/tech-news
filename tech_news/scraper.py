@@ -89,47 +89,128 @@ def categories_cleanner(categories, empty_space):
     return categories_list
 
 
+def new_search_title(title, selector):
+    if title is None:
+        title = selector.css(
+            ".z--pt-40.z--pb-24" + " h1::text"
+        ).get()
+    return title
+
+
+def new_search_timestamp(timestamp, selector):
+    if timestamp is None:
+        timestamp = selector.css(
+            ".z--pt-40.z--pb-24" + " time#js-article-date::attr(datetime)"
+        ).get()
+    return timestamp
+
+
+def new_search_writer(writer, selector):
+    if writer is None:
+        writer = selector.css(
+            ".z--pt-40.z--pb-24" + " a::text"
+        ).get()
+    if writer is None:
+        writer = selector.css(
+            "#js-author-bar.tec--author p::text"
+        ).get()
+    return writer
+
+
+def new_search_comments(comments_count, selector):
+    if comments_count is None:
+        comments_count = selector.css(
+            ".z--pt-40.z--pb-24" + " button#js-comments-btn.tec--btn"
+        ).get()
+    return comments_count
+
+
+def new_search_summary(summary, selector):
+    if summary is None:
+        summary = selector.css(
+         ".tec--article__body.p402_premium p"
+        ).getall()[1]
+    if summary is None or len(summary) < 140:
+        summary = selector.css(
+         ".tec--article__body.z--px-16.p402_premium p"
+        ).getall()[1]
+    return summary
+
+
 # Requisito 4
 def scrape_noticia(html_content):
     dict = {}
     empty_space = " "
     selector = parsel.Selector(text=fetch(html_content))
 
+    news_url = selector.xpath("/html/head/link[@rel='canonical']/@href").get()
     title_and_date_container = ".z--pt-40.z--pb-24.z--pl-16"
     share_comments_and_author_container = "#js-author-bar.tec--author"
 
     title = selector.css(title_and_date_container + " h1::text").get()
+
+    title = new_search_title(title, selector)
+
     timestamp = selector.css(
         title_and_date_container + " time::attr(datetime)"
         ).get()
+
+    timestamp = new_search_timestamp(timestamp, selector)
+
     writer = selector.css(
         share_comments_and_author_container + " a.tec--link--tecmundo::text"
         ).get()
+    # testar while - enquanto for None vai fazendo o selector.css
+
+    writer = new_search_writer(writer, selector)
+
     shares_count = selector.css(
         share_comments_and_author_container + " .tec--toolbar__item::text"
         ).get()
     comments_count = selector.css(
         share_comments_and_author_container + " div button"
         ).get()
+
+    comments_count = new_search_comments(comments_count, selector)
+
     summary = selector.css(
         ".tec--article__body-grid .tec--article__body.z--px-16.p402_premium p"
         ).get()
+
+    summary = new_search_summary(summary, selector)
+
+    summary = summary_cleaner(summary)
+
     sources = selector.css(".z--mb-16.z--px-16 div a::text").getall()
     categories = selector.css(
         ".z--px-16 div#js-categories a::text"
+        ).getall()
+
+    if len(sources) == 0:
+        sources = selector.css(
+         ".z--mb-16 div >::text"
+        ).getall()
+
+    if len(categories) == 0:
+        categories = selector.css(
+         ".z--mb-16 ~ div div#js-categories a::text"
         ).getall()
 
     if shares_count is None:
         shares_count = 0
     else:
         shares_count = convert_shares_count(shares_count)
-    summary = summary_cleaner(summary)
-    comments_count = convert_comments_count(comments_count)
+
+    if comments_count is None:
+        comments_count = 0
+    else:
+        comments_count = convert_comments_count(comments_count)
+
     writer = name_writer_cleanner(writer, empty_space)
     sources_list = sources_cleanner(sources, empty_space)
     categories_list = categories_cleanner(categories, empty_space)
 
-    dict["url"] = html_content
+    dict["url"] = news_url
     dict["title"] = title
     dict["timestamp"] = timestamp
     dict["writer"] = writer
