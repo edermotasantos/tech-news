@@ -41,8 +41,6 @@ def scrape_next_page_link(html_content):
 
 
 def convert_shares_count(shares_count):
-    if shares_count is None:
-        shares_count = 0
     if shares_count[0] == " ":
         shares_count = int(shares_count[1:3])
     return shares_count
@@ -95,8 +93,7 @@ def categories_cleanner(categories, empty_space):
 def scrape_noticia(html_content):
     dict = {}
     empty_space = " "
-    response = requests.get(html_content)
-    selector = parsel.Selector(text=response.text)
+    selector = parsel.Selector(text=fetch(html_content))
 
     title_and_date_container = ".z--pt-40.z--pb-24.z--pl-16"
     share_comments_and_author_container = "#js-author-bar.tec--author"
@@ -122,7 +119,10 @@ def scrape_noticia(html_content):
         ".z--px-16 div#js-categories a::text"
         ).getall()
 
-    shares_count = convert_shares_count(shares_count)
+    if shares_count is None:
+        shares_count = 0
+    else:
+        shares_count = convert_shares_count(shares_count)
     summary = summary_cleaner(summary)
     comments_count = convert_comments_count(comments_count)
     writer = name_writer_cleanner(writer, empty_space)
