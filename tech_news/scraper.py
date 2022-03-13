@@ -100,7 +100,7 @@ def new_search_title(title, selector):
 def new_search_timestamp(timestamp, selector):
     if timestamp is None:
         timestamp = selector.css(
-            ".z--pt-40.z--pb-24" + " time#js-article-date::attr(datetime)"
+            ".z--pt-40.z--pb-24" + " time::attr(datetime)"
         ).get()
     return timestamp
 
@@ -112,15 +112,16 @@ def new_search_writer(writer, selector):
         ).get()
     if writer is None:
         writer = selector.css(
-            "#js-author-bar.tec--author p::text"
+            "#js-author-bar.tec--author p a::text"
         ).get()
+
     return writer
 
 
 def new_search_comments(comments_count, selector):
     if comments_count is None:
         comments_count = selector.css(
-            ".z--pt-40.z--pb-24" + " button#js-comments-btn.tec--btn"
+            ".z--pt-40.z--pb-24" + " button"
         ).get()
     return comments_count
 
@@ -128,13 +129,19 @@ def new_search_comments(comments_count, selector):
 def new_search_summary(summary, selector):
     if summary is None:
         summary = selector.css(
-         ".tec--article__body.p402_premium p"
-        ).getall()[1]
-    if summary is None or len(summary) < 140:
+         ".tec--article__body.p402_premium p::text"
+        ).get()
+    if summary is None:
         summary = selector.css(
-         ".tec--article__body.z--px-16.p402_premium p"
-        ).getall()[1]
+         ".tec--article__body.z--px-16.p402_premium p::text"
+        ).get()
     return summary
+
+
+def check_name_writer(writer):
+    if writer == "@tec_mundo":
+        writer = 'Equipe TecMundo'
+    return writer
 
 
 # Requisito 4
@@ -144,12 +151,19 @@ def scrape_noticia(html_content):
 
     selector = parsel.Selector(html_content)
 
+    # para rodar na localmente
+    # response = requests.get(html_content)
+    # selector = parsel.Selector(text=response.text)
+
     news_url = selector.xpath("/html/head/link[@rel='canonical']/@href").get()
 
     title_and_date_container = ".z--pt-40.z--pb-24.z--pl-16"
+
     share_comments_and_author_container = "#js-author-bar.tec--author"
 
-    title = selector.css(title_and_date_container + " h1::text").get()
+    title = selector.css(
+        title_and_date_container + " h1::text"
+        ).get()
 
     title = new_search_title(title, selector)
 
@@ -161,6 +175,10 @@ def scrape_noticia(html_content):
 
     writer = selector.css(
         share_comments_and_author_container + " a.tec--link--tecmundo::text"
+        ).get()
+
+    writer = selector.css(
+        share_comments_and_author_container + " p z--font-bold::text"
         ).get()
 
     writer = new_search_writer(writer, selector)
@@ -210,6 +228,8 @@ def scrape_noticia(html_content):
     writer = name_writer_cleanner(writer, empty_space)
     sources_list = sources_cleanner(sources, empty_space)
     categories_list = categories_cleanner(categories, empty_space)
+
+    writer = check_name_writer(writer)
 
     dict["url"] = news_url
     dict["title"] = title
