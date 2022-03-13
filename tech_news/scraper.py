@@ -141,9 +141,11 @@ def new_search_summary(summary, selector):
 def scrape_noticia(html_content):
     dict = {}
     empty_space = " "
-    selector = parsel.Selector(text=fetch(html_content))
+
+    selector = parsel.Selector(html_content)
 
     news_url = selector.xpath("/html/head/link[@rel='canonical']/@href").get()
+
     title_and_date_container = ".z--pt-40.z--pb-24.z--pl-16"
     share_comments_and_author_container = "#js-author-bar.tec--author"
 
@@ -160,7 +162,6 @@ def scrape_noticia(html_content):
     writer = selector.css(
         share_comments_and_author_container + " a.tec--link--tecmundo::text"
         ).get()
-    # testar while - enquanto for None vai fazendo o selector.css
 
     writer = new_search_writer(writer, selector)
 
