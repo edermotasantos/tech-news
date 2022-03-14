@@ -156,10 +156,6 @@ def scrape_noticia(html_content):
 
     selector = parsel.Selector(html_content)
 
-    # para rodar na localmente
-    # response = requests.get(html_content)
-    # selector = parsel.Selector(text=response.text)
-
     news_url = selector.xpath("/html/head/link[@rel='canonical']/@href").get()
 
     title_and_date_container = ".z--pt-40.z--pb-24.z--pl-16"
