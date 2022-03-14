@@ -109,29 +109,18 @@ def new_search_timestamp(timestamp, selector):
     return timestamp
 
 
-def new_search_writer(writer, selector):
-    if writer is None:
-        writer = selector.css(
-            ".z--pt-40.z--pb-24" + " a::text"
-        ).get()
+def new_search_writer(selector):
+    writer = selector.css(
+        ".z--pt-40.z--pb-24" + " a::text"
+    ).get()
     if writer is None:
         writer = selector.css(
             "#js-author-bar.tec--author p a::text"
         ).get()
     if writer is None:
         writer = selector.css(
-            ".tec--article__body-grid p a.tec--link--tecmundo::text"
+            ".z--m-none. > a"
         ).get()
-    if writer is None:
-        writer = selector.css(
-            ".tec--article__body-grid div p::text"
-        ).get()
-    if writer is None:
-        writer = selector.css(
-            "#js-author-bar.tec--author" + " p z--font-bold::text"
-            ).get()
-    if writer is None:
-        writer = ""
     return writer
 
 
@@ -174,11 +163,7 @@ def scrape_noticia(html_content):
 
     timestamp = new_search_timestamp(timestamp, selector)
 
-    writer = selector.css(
-        share_comments_and_author_container + " a.tec--link--tecmundo::text"
-        ).get()
-
-    writer = new_search_writer(writer, selector)
+    writer = new_search_writer(selector)
 
     shares_count = selector.css(
         share_comments_and_author_container + " .tec--toolbar__item::text"
