@@ -63,9 +63,10 @@ def convert_comments_count(comments_count):
 
 
 def name_writer_cleanner(writer, empty_space):
-    if writer.endswith(empty_space):
+    if writer is None:
+        writer = "None"
+    elif writer.endswith(empty_space):
         writer = writer[:-len(empty_space)]
-    if writer.startswith(empty_space):
         writer = writer[1:]
     return writer
 
@@ -117,7 +118,20 @@ def new_search_writer(writer, selector):
         writer = selector.css(
             "#js-author-bar.tec--author p a::text"
         ).get()
-
+    if writer is None:
+        writer = selector.css(
+            ".tec--article__body-grid p a.tec--link--tecmundo::text"
+        ).get()
+    if writer is None:
+        writer = selector.css(
+            ".tec--article__body-grid div p::text"
+        ).get()
+    if writer is None:
+        writer = selector.css(
+            "#js-author-bar.tec--author" + " p z--font-bold::text"
+            ).get()
+    if writer is None:
+        writer = ""
     return writer
 
 
@@ -127,18 +141,6 @@ def new_search_comments(comments_count, selector):
             ".z--pt-40.z--pb-24" + " button"
         ).get()
     return comments_count
-
-
-def new_search_summary(summary, selector):
-    if summary is None:
-        summary = selector.css(
-         ".tec--article__body.p402_premium p::text"
-        ).get()
-    if summary is None:
-        summary = selector.css(
-         ".tec--article__body.z--px-16.p402_premium p::text"
-        ).get()
-    return summary
 
 
 def check_name_writer(writer):
@@ -180,10 +182,6 @@ def scrape_noticia(html_content):
         share_comments_and_author_container + " a.tec--link--tecmundo::text"
         ).get()
 
-    writer = selector.css(
-        share_comments_and_author_container + " p z--font-bold::text"
-        ).get()
-
     writer = new_search_writer(writer, selector)
 
     shares_count = selector.css(
@@ -196,26 +194,20 @@ def scrape_noticia(html_content):
     comments_count = new_search_comments(comments_count, selector)
 
     summary = selector.css(
-        ".tec--article__body-grid .tec--article__body.z--px-16.p402_premium p"
-        ).get()
+        ".tec--article__body > p:nth-child(1) *::text"
+        ).getall()
 
-    summary = new_search_summary(summary, selector)
-
-    summary = summary_cleaner(summary)
+    summary = "".join(summary)
 
     sources = selector.css(".z--mb-16.z--px-16 div a::text").getall()
+
     categories = selector.css(
-        ".z--px-16 div#js-categories a::text"
-        ).getall()
+        "#js-categories *::text"
+    ).getall()
 
     if len(sources) == 0:
         sources = selector.css(
          ".z--mb-16 div >::text"
-        ).getall()
-
-    if len(categories) == 0:
-        categories = selector.css(
-         ".z--mb-16 ~ div div#js-categories a::text"
         ).getall()
 
     if shares_count is None:
@@ -256,10 +248,12 @@ def get_tech_news(amount):
     scrape_news_list = scrape_novidades(html_content)[:amount]
 
     if amount > 20:
-        while amount >= 20:
+        while amount > 0:
+            amount = amount - 20
+            if amount <= 0:
+                break
             url = scrape_next_page_link(html_content)
             html_content = fetch(url)
-            amount = amount - 20
             scrape_page_next_page = scrape_novidades(html_content)[:amount]
             scrape_news_list.extend(scrape_page_next_page)
 
@@ -267,5 +261,7 @@ def get_tech_news(amount):
         html_content = fetch(scrape_news_list[url_item])
         scrap_news = scrape_noticia(html_content)
         list.append(scrap_news)
+
     create_news(list)
+
     return list
