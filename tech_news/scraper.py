@@ -217,15 +217,14 @@ def get_tech_news(amount):
 
     scrape_news_list = scrape_novidades(html_content)[:amount]
 
-    if amount > 20:
-        while amount > 0:
-            amount = amount - 20
-            if amount <= 0:
-                break
-            url = scrape_next_page_link(html_content)
-            html_content = fetch(url)
-            scrape_page_next_page = scrape_novidades(html_content)[:amount]
-            scrape_news_list.extend(scrape_page_next_page)
+    while amount > 0:
+        amount = amount - 20
+        if amount <= 0:
+            break
+        url = scrape_next_page_link(html_content)
+        html_content = fetch(url)
+        scrape_page_next_page = scrape_novidades(html_content)[:amount]
+        scrape_news_list.extend(scrape_page_next_page)
 
     for url_item in range(len(scrape_news_list)):
         html_content = fetch(scrape_news_list[url_item])
