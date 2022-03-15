@@ -49,12 +49,6 @@ def convert_shares_count(shares_count):
     return shares_count
 
 
-def summary_cleaner(summary):
-    clean = re.compile("<.*?>")
-    summary = re.sub(clean, '', summary)
-    return summary
-
-
 def convert_comments_count(comments_count):
     clean = re.compile("<.*?>")
     comments_count = re.sub(clean, '', comments_count)
@@ -63,11 +57,8 @@ def convert_comments_count(comments_count):
 
 
 def name_writer_cleanner(writer, empty_space):
-    if writer is None:
-        writer = "None"
-    elif writer.endswith(empty_space):
-        writer = writer[:-len(empty_space)]
-        writer = writer[1:]
+    if writer.endswith(empty_space):
+        writer = writer[1:-len(empty_space)]
     return writer
 
 
@@ -75,9 +66,7 @@ def sources_cleanner(sources, empty_space):
     sources_list = []
     for source in sources:
         if source.endswith(empty_space):
-            source = source[:-len(empty_space)]
-        if source.startswith(empty_space):
-            source = source[1:]
+            source = source[1:-len(empty_space)]
             sources_list.append(source)
     return sources_list
 
