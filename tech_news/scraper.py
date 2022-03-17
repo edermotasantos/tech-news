@@ -209,14 +209,7 @@ def scrape_noticia(html_content):
     return dict
 
 
-# Requisito 5
-def get_tech_news(amount):
-    list = []
-    url = "https://www.tecmundo.com.br/novidades"
-    html_content = fetch(url)
-
-    scrape_news_list = scrape_novidades(html_content)[:amount]
-
+def move_to_the_next_page(amount, html_content, scrape_news_list):
     while amount > 0:
         amount = amount - 20
         if amount <= 0:
@@ -225,12 +218,24 @@ def get_tech_news(amount):
         html_content = fetch(url)
         scrape_page_next_page = scrape_novidades(html_content)[:amount]
         scrape_news_list.extend(scrape_page_next_page)
+    return scrape_news_list
+
+
+# Requisito 5
+def get_tech_news(amount):
+    list_dict_news = []
+    url = "https://www.tecmundo.com.br/novidades"
+    html_content = fetch(url)
+
+    scrape_news_list = scrape_novidades(html_content)[:amount]
+
+    move_to_the_next_page(amount, html_content, scrape_news_list)
 
     for url_item in range(len(scrape_news_list)):
         html_content = fetch(scrape_news_list[url_item])
         scrap_news = scrape_noticia(html_content)
-        list.append(scrap_news)
+        list_dict_news.append(scrap_news)
 
-    create_news(list)
+    create_news(list_dict_news)
 
-    return list
+    return list_dict_news
